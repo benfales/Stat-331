@@ -1,0 +1,73 @@
+---
+title: 'Lab 5: Baby Names'
+author: "Benjamin Fales"
+date: "February 25, 2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(eval = TRUE, echo = FALSE)
+
+library(tidyverse)
+```
+
+```{r dataset, include = FALSE}
+library(readxl)
+
+babies = read_excel("C:/Users/bfale/Desktop/Stat-331/Directories_etc/Babyname_Datasets/babies_ca.xlsx")
+
+benjamin <- babies %>% 
+  filter(Name == "Benjamin")
+
+```
+
+Today, we will be analyzing the usage of my name "Benjamin" over time.
+
+## Line Plot of the usage of Benjamin over time.
+
+To my suprise, there was a small number of female babies named Benjamin from around 1960 to 1990. Additionally, the usage of the name for males has increased over time, with the steepest increase from the ealry 1970s to the late 1970s.
+
+```{r line plot, eval = TRUE, echo = FALSE}
+
+ggplot(benjamin, aes(x = Year, y = Count, color = Gender)) +
+  geom_line()
+```
+
+## Linear Model
+
+We have created a linear model, illustrating the usage of Benjamin or Ben in California, for males.
+For every additional year, the usage of Benjamin as a baby name increases by 0.036 times.
+
+```{r linear model, eval = TRUE, echo = FALSE}
+benjamin_male <- benjamin %>% 
+  filter(Gender == "M")
+
+linear_model <- lm(Year ~ Count, benjamin_male)
+
+summary(linear_model)
+```
+
+## Plot of the Linear Model 
+
+Now, take a look at the scatter plot associated with the model. From this plot, the L assumption may not be satisfied. We will take a look at the residual plot to take a deeper look at the fit of the linear model to the data.
+
+```{r linear model plot, eval = TRUE, echo = FALSE}
+ggplot(benjamin_male, aes(x = Year, y = Count, color = Name)) +
+  geom_point() + 
+  stat_smooth(method = "lm")
+```
+
+## Residual Plot
+
+The residual plot does not have a terrible pattern, and it follows the linear model. There may be more variables that we don't have access to that we can include in the model to ensure a better fit. However, with the information we have provided the model explains 92% of the data as shown by R-squared when year is used as an explanatory variable. 
+
+```{r residual plot, eval = TRUE, echo = FALSE}
+library(modelr)
+
+benjamin_male %>%
+  add_predictions(linear_model) %>%
+  mutate(residual = Count - pred) %>% 
+  ggplot(aes(x = Year, y = residual)) + geom_point()
+
+```
+

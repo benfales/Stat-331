@@ -1,0 +1,160 @@
+---
+title: "8_Activity_Testing"
+author: ""
+date: "February 6, 2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(tidyverse)
+library(broom)
+
+data("starwars")
+```
+
+# Instructions
+
+The dataset "starwars" has been loaded for you.  Take a look at it and understand the variables. 
+
+```{r}
+names(starwars)
+
+head(starwars, n = 15)
+
+head(starwars$films)
+```
+
+
+## Writing your own t-test
+
+Write a function called `run_t_test` that takes as input two vectors of numbers, and an option for the alternative hypothesis, and gives back the results of a t-test for equality of means.  You may not use the function `t.test()` except to check that your version is working correctly.
+
+```{r}
+run_t_test <- function(x, y, alternative = "two-sided"){
+  
+  x <- na.omit(x)
+  y <- na.omit(y)
+  
+  n1 <- length((x))
+  n2 <- length((y))
+  
+  s1 <- sd(x)
+  s2 <- sd(y)
+  
+  se = sqrt(s1^2/n1 + s2^2/n2)
+  
+  mu1 <- mean(x)
+  mu2 <- mean(y)
+  
+  test.stat <- (mu1 - mu2)/se
+  df0 <- min(n1, n2) - 1
+  
+  if (alternative == "two-sided") {
+    
+    pval <- 2*pt(-abs(test.stat), df = df0)
+  }
+  
+  else if(alternative == "greater")  {
+    
+    pval <- 1 - pt(test.stat, df = df0)
+  }
+  else{
+    pval <- pt(-abs(test.stat), df = df0)
+  }
+  
+  return(list(test.stat = test.stat , df = df0 , p.val = pval ))
+}
+```
+
+Use your t-test function to answer the following:
+
+1. Are Humans or Droids taller?
+There is no significant evidence available to reject the null hypothesis that Droids are taller than humans. Additionally, there is no significant evidence aviable to reject the null hypothesis that Humans' height differ from Droids' height (using two-sided t test) .
+```{r}
+human <- starwars %>% 
+  filter(species == "Human")
+
+droid <- starwars %>% 
+  filter(species=="Droid")
+
+run_t_test(droid$height, human$height, alternative = "greater")
+
+t.test(droid$height, human$height, alternative = "greater")
+
+run_t_test(droid$height, human$height, alternative = "two-sided")
+```
+
+2. Do men or women weigh more?
+
+There is sufficient evidence to reject the null hypothesis H0, in favor of the alternative Hypothesis Ha, that men weigh more than women.
+```{r}
+men <- starwars %>% 
+  filter(gender == "male")
+
+women <- starwars %>% 
+  filter(gender == "female")
+
+run_t_test(men$mass, women$mass, alternative = "greater")
+
+t.test(men$mass, women$mass, alternative = "greater")
+```
+
+
+## Chi-square tests
+
+Use the function `chisq.test()` to answer the following:
+
+1. Is there a relationship between hair color and eye color?
+There is sufficient evidence to reject the null hypothesis H0, in conclusion there is an association between hair color and eye color.
+```{r}
+starwars %>% 
+  mutate( 
+    hair_eye = case_when(
+      hair_color == "white" | hair_color == "auburn" | hair_color == "blonde" &
+        eye_color == "orange" | eye_color == "yellow" | eye_color == "gold" |
+        eye_color == "red" ~ "LightLight",
+      hair_color == "white" | hair_color == "auburn" | hair_color == "blonde" &
+        eye_color == "blue" | eye_color == "green" | eye_color == "hazel" |
+        eye_color == "black" | eye_color == "brown" ~ "LightDark",
+      hair_color == "black" | hair_color == "brown" & eye_color == "orange" | eye_color == "yellow" | eye_color == "gold" |
+        eye_color == "red" ~ "DarkLight",
+      hair_color == "black" | hair_color == "brown" & eye_color == "blue" | eye_color == "green" | eye_color == "hazel" | eye_color == "black" | eye_color == "brown" ~ "DarkDark",
+      TRUE ~ "OtherOther"
+    )
+) %>% 
+count(hair_eye) %>% 
+spread(key = hair_eye, value = n) %>%
+select(LightLight, LightDark, DarkDark, DarkLight) %>% 
+chisq.test() %>% 
+tidy()
+```
+
+2. Do Droids tend to come from some homeworlds more than others?
+There is not enough evidence to reject H0, that there in association between Droids and Homeworlds.
+```{r}
+starwars %>% 
+  filter(species == "Droid") %>% 
+  mutate(home = case_when(
+      homeworld == "Tatooine" ~ "T",
+      homeworld == "Naboo" ~ "N"
+    )
+  ) %>% 
+  count(home, na.rm = TRUE) %>%
+  spread(key = home, value = n) %>% 
+  chisq.test() %>% 
+  tidy()
+
+```
+
+
+## Many tests (optional)
+
+On which worlds is the height difference between men and women most pronounced?
+ 
+
+
+

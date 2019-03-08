@@ -1,0 +1,112 @@
+---
+title: "Questions for Class Activity 1"
+author: "Benjamin Fales"
+date: "January 8, 2019"
+output: html_document
+---
+
+1a) How many students have filled out the survey so far?
+
+```
+
+86 Students
+
+```
+
+1b) What possible issues do you see with the way your survey data was stored in the dataset `survey_orig`?
+
+```
+
+There might be variable names that are too long. The response volume might change as people fill out the google survey. 
+
+```
+
+2a) Why do you think we might have taken made a new dataset, `free_response`?
+
+```
+
+There are two different type of questions. There are categorical and free response questions, so the data can be visualized differently for each type of
+question.
+
+```
+
+2b) Explain in words what is different about the dataset `survey` as compared to `survey_orig`.
+
+```
+
+survey_original has all of the variables included. survey only includes the categorical variables.
+
+```
+
+### Questions:
+
+3a) What did you learn about majors and minors of 331 students?
+
+```
+
+Most business majors have statistics as a minor, but most computer science majors have data sience minors.
+
+```
+
+
+3b) What did you learn about Kardashian preference and school year?
+
+```
+
+The amount of respondents who don't care at all increases as the school year increases. Freshman had 0 respondents who did not care at all.
+
+```
+
+
+3c) What did you learn about the relationship between hot dog definitions, political preference, and major?
+
+```
+
+A majority of democratic respondents across majors believe a hot dog is neither a taco or a sandwich. Republicans in both computer science and statistics
+believe a hot dog is a sandwich.
+
+```
+
+
+### Questions:
+
+4a) Use your console to look at `survey_courses_1` and `survey_courses_2`.  Explain the difference between these.
+
+
+```
+
+survey courses 1 does not distingush between the type of programming class a student has taken, where as survey courses 2 does. Survey courses 2 delineates between statistics and computer science classes using color.
+```
+
+
+4b) Why might we want two different styles of data?
+
+
+```
+
+It depends on the questions you are asking before running the program. IF you just want general totals survey courses 1 would work. If you want to dive deeper into the data, survey courses 2 is more specific.
+
+```
+
+4c) What did you learn about coursework and majors?
+
+
+```
+
+I learned that science majors had not taken any computer science classes at all. Additionally, computer science majors have obviusoly taken the most cs classes and statistics majors have takent the most statistics classes.
+```
+
+5a) What did you observe about the opinions of Cal Poly students over their course of study?
+
+```
+
+Grad students have the most negative outlook on Cal Poly. Seniors have the least negative outlook on Cal Poly but not necessairly the most positive. 
+```
+
+5b) What fun things did you notice in the word clouds?
+
+```
+
+The most substantial word cloud words were common words like "and" or "the". However, a prominent theme in the wordcloud was excitement for learning.
+
+```

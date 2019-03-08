@@ -1,0 +1,118 @@
+---
+title: 'Lab 7: Bootstrapping'
+author: "Benjamin Fales"
+date: "March 7, 2019"
+output: html_document
+---
+
+# The Data
+
+```{r data, echo = TRUE, include = FALSE}
+library(tidyverse)
+library(lubridate)
+library(modelr)
+library(broom)
+
+salaries <- read.csv("C:/Users/bfale/Desktop/Salaries.csv", header = TRUE, na.strings = c("Not Provided", "Not provided", ""))
+
+options(scipen = 999)
+```
+
+### Question 2
+
+The center of the histogram seems to lay around $75,000 of total pay. The histogram as a whole is skewed right. The spread is very large.
+```{r Question 2, eval = TRUE, cho = TRUE}
+
+salaries %>% 
+  ggplot(aes(x = TotalPay, y = ..density..)) +
+  geom_histogram(bins = 50) +
+  geom_density()
+```
+
+### Question 3
+The mean is a fairly reliable measure the typical value of a salary. However, I would use the median as this reflects the large skew to the right that the salary has.
+```{r Question 3, echo = TRUE, eval = TRUE}
+mean_totalpay <- mean(salaries$TotalPay)
+
+median_totalpay <- median(salaries$TotalPay) 
+
+statistics_salaries <- data.frame(Mean = mean_totalpay, Median = median_totalpay)
+
+statistics_salaries
+```
+
+### Question 4
+Based on the graph in Question 2, it does not seem reasonable for the normal assumption to be satisfied.
+
+### Question 5
+```{r Question 5, echo = TRUE, eval = TRUE }
+
+tidy(t.test(salaries$TotalPay)) %>% 
+  select(conf.low, conf.high)
+```
+
+#Bootstrapping
+
+### Question 6
+Compared to the t dist. confidence interval, they are very similar. The bootstrapped confidence interval is minisculely wider. 
+```{r Question 6, echo = TRUE, eval = TRUE}
+boots_total <- replicate(1000, sample(salaries$TotalPay, replace = TRUE), simplify = FALSE)
+
+stats_salaries <- map_dbl(boots_total, mean)
+
+conf_salaries <- quantile(stats_salaries, c(0.025, 0.975))
+
+conf_salaries
+```
+
+### Question 7
+```{r Question 7, echo = TRUE}
+
+midhinge_salaries <- function(dist){
+  q1 = quantile(dist,.25)
+  q3 = quantile(dist, .75)
+  midhinge = (q1 + q3) / 2
+  return(midhinge)
+}
+
+trim_salaries <- function(dist, trimmed){
+  trimmed_mean = mean(dist, trim = trimmed)
+  return(trimmed_mean)
+}
+
+
+```
+
+### Question 8
+```{r Question 8, echo = TRUE, eval = TRUE}
+stats <- data.frame(midhinge = map_dbl(boots_total, midhinge_salaries),
+                    median = map_dbl(boots_total, ~quantile(.x, .5)))
+
+stats %>% 
+  gather(key = "Stat", value = "Value") %>% 
+ ggplot(aes(x = Value, fill = Stat)) +
+    geom_density(alpha = 0.5)
+
+trim_stats <- data.frame(trim_05 = map_dbl(boots_total, ~trim_salaries(.x, .05)),
+                        trim_10 = map_dbl(boots_total, ~trim_salaries(.x, .10)),
+                         trim_25 = map_dbl(boots_total, ~trim_salaries(.x, .25)))
+
+trim_stats %>% 
+  gather(key = "Trim_Mean" , value = "Value") %>% 
+  ggplot(aes(x = Value, fill = Trim_Mean)) +
+  geom_density(alpha = 0.5) 
+
+```
+
+### Question 9
+Because of the large skew to the right, as well as the large density of the population that seems to have a salary of 0, it would be reliable to use the 25% trimmed mean. This trims out the lowest salaries as well as the highest salaries.
+```{r Question 9, echo = TRUE, eval = TRUE}
+data.frame(
+  conf_midhinge = quantile(stats$midhinge, c(.25, .75)),
+  conf_median = quantile(stats$median, c(.25, .75)),
+  conf_trim_05 = quantile(trim_stats$trim_05, c(.25, .75)),
+  conf_trim_10 = quantile(trim_stats$trim_10, c(.25, .75)),
+  conf_trim_25 = quantile(trim_stats$trim_25, c(.25, .75))
+)
+```
+

@@ -1,0 +1,41 @@
+---
+title: "Recreate a Plot"
+author: "Benjamin Fales"
+date: "1/24/2019"
+output: html_document
+---
+
+```{r}
+hiphop <- read.csv("https://www.dropbox.com/s/1qqyshx5ikt9zoc/hiphop.csv?dl=1")
+
+library(tidyverse)
+```
+
+```{r}
+hiphop <-
+  hiphop %>% 
+  mutate(
+    has_black_friends = case_when (
+      blackMove > 0 ~ TRUE,
+      blackMove <= 0 ~ FALSE 
+      ))
+
+```
+
+
+
+```{r}
+culture_question <- hiphop %>% 
+  distinct(subj, .keep_all = TRUE) %>%
+  group_by(has_black_friends) %>% 
+  summarize_at(
+    vars(barkley, bieber, boondocks, jayz, monique), 
+    funs(mean))
+
+culture_question %>% gather(key = culture_question, value = avg_score, -has_black_friends)  %>% 
+  ggplot(aes(x = culture_question, y = avg_score, fill = has_black_friends)) +
+  geom_col(position = "dodge") +
+  ggtitle ("Do non-black people with black friends know more about black culture?")
+  
+```
+

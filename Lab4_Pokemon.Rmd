@@ -1,0 +1,46 @@
+---
+title: "Lab 4 - Pokemon"
+author: "Jake Leppek, Ben Fales, & Jeremy Whorton"
+date: "2/17/2019"
+output: html_document
+---
+
+```{r}
+library(tidyverse)
+pokes <- read.csv("https://www.dropbox.com/s/i0lwxgv86eaoq4o/pokemon.csv?dl=1")
+```
+
+
+Plot: 
+```{r}
+pokes %>%
+  ggplot(aes(x = Catch_Rate, y = Total, color = Type_1)) +
+  geom_point() +
+  geom_smooth(method = "lm", se = FALSE) +
+  facet_wrap(~Type_1)
+```
+#####
+
+Insightful analysis of graph from above
+
+Overall, there seems to be a negative association between Catch Rate and the Total fighting abilities of a Pokemon. In other words, the harder that it is to catch a pokemon, the better they're total fighting abilities will be. This seems to be consistent across all Types of pokemon. Although it may not be significant for flying types as there are only three observations of flying type pokemon.
+
+######
+
+
+
+Statistical Analysis: 
+```{r}
+poke_test <- pokes %>%
+   mutate(Number_of_Types = case_when(
+         Type_2 == "" ~ "1 Type",
+         TRUE ~ "2 Types" )) 
+
+t.test(Total ~ Number_of_Types, data = poke_test)
+```
+
+From this Two Sample t-test with an alpha level of .05, we can see that our test yields a p-value of 0.0004692. From this p-value we can conclude that there is evidence that pokemon that have two types instead of only one type have a higher avg "Total" value that is statistically higher, on average. 
+
+This difference makes sense logically because having more than one type most likely gives the pokemon the advantage having a strong defensive score against more types of pokemon. 
+
+Alternatively having two types allows for a pokemon to have more types of attacks, which is also advantageous and would explain the higher average total score.

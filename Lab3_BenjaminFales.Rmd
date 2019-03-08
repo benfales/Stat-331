@@ -1,0 +1,97 @@
+---
+title: 'Lab 3: Billboard Top 100'
+author: "Benjamin Fales"
+date: "2/3/2019"
+output: html_document
+---
+```{r}
+library(tidyverse)
+library(lubridate)
+songs <- read.table("https://www.dropbox.com/s/jrwjthqo9b5o07g/billboard_songs.txt?dl=1",header = TRUE,stringsAsFactors = FALSE)
+```
+
+```{r}
+songs1 <-
+songs %>% mutate(
+  end_date = ymd(chart.date),
+  start_date = end_date - weeks(weeks.on.chart)
+)
+```
+
+
+1. What 10 songs spent the longest on the charts? Give only the title, artist, and weeks.
+```{r}
+weeksonchart <-
+  songs1 %>% 
+  arrange(desc(weeks.on.chart)) %>% 
+  select(title, artist, weeks.on.chart) %>% 
+  top_n(10, weeks.on.chart)
+
+weeksonchart
+```
+
+2. What date did the oldest song(s) in this dataset leave the charts? Give only the date.
+```{r}
+old_song <- 
+  songs1 %>%
+  arrange(start_date) %>% 
+  select(end_date)
+
+old_song[1,]
+```
+
+3. What songs could have been played at your 16th birthday party? That is, which songs overall.peaked at #1 and entered the charts within a couple months (before or after) your 16th birthday? Give only the song title, artist, and date of chart entry
+```{r}
+birthday <- as.Date("1997-07-18")
+birthday_16 <- birthday + years(16)
+
+bdayparty_16 <- songs1 %>% 
+  filter(overall.peak ==1, start_date <= birthday_16 + months(2), end_date >= birthday_16 - months(2)) %>% 
+  select(title, artist, start_date)
+
+bdayparty_16
+```
+
+4. What is the most common word, at least 4 letters long, used in the title of any song? Give only the
+word itself, and its count.
+```{r}
+titles <- songs1 %>%
+  pull(title)
+four_char_words <-
+  titles %>%
+  unlist() %>% 
+  str_extract_all(pattern = fixed("[^:alpha:]{4,}"))  
+  
+
+four_char_words %>%
+table() %>%
+sort() %>%
+rev() %>%
+head(1)
+```
+
+5. 5) Which five artists were the most successful in terms of:
+• Number of songs that were #1 hits
+• Total weeks any of their songs spent on the chart.
+```{r}
+
+numberones <-
+songs1 %>% 
+  filter(overall.peak == 1) %>% 
+  group_by(artist) %>%
+  summarize_at(vars(title),  funs(n())) %>% 
+  arrange(desc(title)) %>% 
+  top_n(5)
+
+numberones
+
+weeks_spent <-
+  songs1 %>% 
+  group_by(artist) %>% 
+  summarize_at(vars(weeks.on.chart), funs(sum)) %>% 
+  arrange(desc(weeks.on.chart)) %>%
+  top_n(5)
+
+weeks_spent
+```
+

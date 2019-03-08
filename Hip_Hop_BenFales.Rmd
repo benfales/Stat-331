@@ -1,0 +1,83 @@
+---
+title: "Hip Hop"
+author: "Benjamin Fales"
+date: "1/10/2019"
+output: html_document
+---
+1. Copy the following code into an R chunk, to load the data and gain access to the tidyverse package.
+```{r}
+hiphop <- read.csv("https://raw.githubusercontent.com/kbodwin/STAT-331/master/In-Class%20Activities/Data/hiphop.csv?token=AVHCwTQaeq5UylWJxCcNN8qYww6UIaLqks5cP75ewA%3D%3D")
+library(tidyverse)
+```
+2. What are the variable names and types in this dataset?
+Variables:
+"word" - factor               "subj" - factor               "sex" - int             "age" - int                 "ethnic" - factor              "city" - num             "county" - num             "intl" - int               "vocal" - int             
+"classical" - int           "folk" - int                 "rock" - int               
+"country" - int             "pop" - int                 "alternative" - int        
+"hiphop" - int              "unclassifiable" - int      "countyBlack" - int        
+"jayz" - int                "barkley" - int            "boondocks" - int          
+"monique" - int             "bieber" - num              "asianMove" - num          
+"blackMove" - num           "hispanicMove" - num         "nativeMove" - num         
+"SAAMEMove" - num           "whiteMove" - num           "blackWeekly" - num        
+"jayz1" - int               "boondocks1" - int          "familiarity" - int        
+"trial" - int               "fam1" - int                "popularityScore" - int    
+"numPreferredArtists" - int "numOverallArtists" - int  
+```{r}
+str(hiphop)
+names(hiphop)
+```
+
+3. What are the dimensions of the data set? Do the dimensions make sense considering the information given above about the study? Explain.
+
+The dimensions of the dataset are 10752 rows and 38 columns. This makes sense because there are 10752 observations which aligns with the 10752 rows and 38 variables which corresponds with 38 variables.
+```{r}
+nrow(hiphop)
+ncol(hiphop)
+hiphop[,1:2]
+```
+
+4. Display the 64 AAE words that were tested, with no duplicates. 
+```{r}
+unique(hiphop[,1], incomparables = FALSE, fromLast = FALSE, nmax = 64)
+```
+5. Get an overview of the hiphop data set. Which variables contain missing values?
+The numPreferredArtists variable and the numOverallArtists variables have missing values.
+```{r}
+summary(hiphop)
+is.na(hiphop)
+```
+
+6. How many missing values are in the whole data set?
+There are 10724 missing values in the whole data set.
+```{r}
+colSums(is.na(hiphop))
+sumNa <- 5362 + 5362
+sumNa
+```
+
+7. Calculate the mean and standard deviation of numPreferredArtists. 
+```{r}
+mean(hiphop$numPreferredArtists, na.rm = TRUE)
+sd(hiphop$numPreferredArtists, na.rm = TRUE)
+```
+
+8. Write code to create a new data frame called subject19 which only contains information for subject19. What are the dimensions of this new data frame?
+The dimensions of the new dataframe are 64 row by 38 columns.
+```{r}
+subject19 <- hiphop[hiphop$subj == "p19",]
+subject19
+nrow(subject19)
+ncol(subject19)
+```
+
+9. Display the familarity variable of the subject 19 data frame in two different ways.
+```{r}
+subject19[,33]
+subject19$familiarity
+```
+
+10. Write code to order this new data frame by familiarity from largest to smallest, retaining this sorting in the subject19 data frame (ie, you should not print out the data frame).
+```{r}
+subject19 <- order(subject19$familiarity)
+```
+

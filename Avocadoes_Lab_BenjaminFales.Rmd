@@ -1,0 +1,114 @@
+---
+title: 'Lab 2: Avocadoes'
+author: "Benjamin Fales"
+date: "1/27/2019"
+output: html_document
+---
+
+```{r}
+library(tidyverse)
+library(lubridate)
+
+avo <- read.csv("https://www.dropbox.com/s/vsc1dkosz6nwake/avocado.csv?dl=1")
+```
+
+```{r}
+str(avo)
+
+names(avo)
+```
+
+1. NorthEast sold the most avocadoes in 2017.
+```{r}
+
+smallbags_2017 <- avo %>% 
+  filter(type == "organic", year==2017) %>% 
+  group_by(region) %>% 
+  summarize(mean_small = mean(Small.Bags)) %>% 
+  arrange(desc(mean_small)) %>% 
+  filter(region != "TotalUS") %>% 
+  top_n(1, mean_small)
+
+smallbags_2017
+```
+
+2. Avocadoes sold in the most volume in Septembers.
+```{r}
+avo1 <- avo %>% 
+  mutate(date = ymd(Date)) %>% 
+  mutate_at(vars(date), funs(year, month, day))
+  
+
+avocadoes_month <- avo1 %>% 
+  group_by(month) %>% 
+  summarize(mean_volume = mean(Total.Volume)) %>% 
+  arrange(desc(mean_volume)) %>% 
+  top_n(1, mean_volume)
+
+avocadoes_month
+```
+
+3. 
+```{r}
+options(scipen = 999)
+
+top_5_regions <- avo %>% 
+  filter(region != "TotalUS") %>% 
+  group_by(region) %>% 
+  summarize_at(vars(Total.Volume), funs(mean)) %>%
+  top_n(5, Total.Volume) %>% 
+  pull(region)
+
+top_5_regions
+
+avo %>%
+  filter(region %in% top_5_regions)%>%
+  group_by(region)%>%
+  ggplot (aes(x = region, y = Total.Volume, color = region)) +
+  geom_boxplot()
+```
+
+4. San Francisco has the highest difference in the average price of organic and conventional avocadoes in California at a difference of $0.85 per Avocado.  
+```{r}
+avo_cali <- avo %>% 
+  filter(region %in% c("LosAngeles", "SanFrancisco", "SanDiego", "Sacramento"))
+
+avo_difference <- avo_cali %>% 
+  group_by(region, type) %>%
+  summarize_at(vars(AveragePrice), funs(mean)) %>% 
+  ungroup(region) %>% 
+  spread(key = type, value = AveragePrice) %>%
+  mutate(
+  difference = organic - conventional
+  ) 
+
+avo_difference %>% 
+  arrange(desc(difference))
+
+avo_difference %>% 
+  ggplot(aes(x = region, y = difference, color = region, fill = region)) + 
+  geom_col() +
+  ggtitle("Difference in the Price of Organic and Conventional Avocadoes" )
+```
+
+5. 
+```{r}
+avo_cali %>%
+  filter(region %in% c("LosAngeles", "SanFrancisco", "SanDiego", "Sacramento")) %>% 
+  mutate(
+    small_pct = Small.Bags / Total.Bags,
+    large_pct = Large.Bags / Total.Bags,
+    xlarge_pct = XLarge.Bags / Total.Bags
+    ) %>%
+  group_by(region, type) %>% 
+  summarize_at(vars(small_pct, large_pct, xlarge_pct), funs(mean), na.rm = TRUE) %>%   
+  gather(key = pcts, value = num_pct, small_pct, large_pct, xlarge_pct, factor_key = TRUE) %>%
+  ggplot(aes(x = region, y = num_pct, fill = pcts)) +
+  geom_col(position = "fill") +
+  facet_grid(~type) +
+  scale_y_continuous(labels = scales::percent) +
+  theme(axis.text.x = element_text(angle=60, hjust=1)) +
+  ggtitle("Percent of Avacado Sales by Bag Size by Region in California")
+  
+```
+

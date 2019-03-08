@@ -1,0 +1,202 @@
+---
+title: "HipHop_Lab_BenjaminFales"
+author: "Benjamin Fales"
+date: "1/17/2019"
+output: html_document
+---
+```{r}
+hiphop <- read.csv("https://raw.githubusercontent.com/kbodwin/STAT-331/master/In-Class%20Activities/Data/hiphop.csv?token=AVHCwRXHTU_HZuxL-Iofhjhi-QqAgfxOks5cSRj-wA%3D%3D")
+
+library(tidyverse)
+
+
+```
+
+INTRODUCTION
+
+1. The hip hop variable set has 38 variables with 10752 observations. The word, subject, sex, and ethnic variables are factors. There are variables that explain the genre of music, as well as variables that show the nnumber of preferred artists one has.
+```{r}
+
+```
+
+```{r}
+str(hiphop)
+
+names(hiphop)
+
+```
+
+2. There are 64 unique AAVE words in the dataset.
+```{r}
+str(hiphop$word)
+```
+
+3.
+```{r}
+hiphop1 <- hiphop %>% mutate(
+  ethnic_2 = case_when(
+    ethnic == "white" ~ "white",
+    TRUE ~ "non-white")
+)
+```
+
+4. There is a larger amount of female artists in the dataset. The mean age is 20.02 years old. The largest ethnic group in the dataset is white at a count of 8640 observations, followed by asian with 1216 observations.  
+```{r}
+summary (hiphop1$age)
+
+summary (hiphop1$sex)
+
+summary (hiphop1$ethnic)
+
+
+
+```
+
+5. 
+```{r}
+hiphop %>%
+  ggplot(aes(x = age, color = sex)) + 
+    geom_bar()
+
+hiphop %>%
+  ggplot(aes(x= age, y = sex, color = ethnic)) +
+  geom_point(position = "jitter")
+```
+
+
+FAMILIAR WORDS
+
+1. 
+People below the age of 20:
+  Most = off the hook
+  Least = catch the vapors
+Non-White Women:
+  Most = Feel me
+  Least = rollie
+White Men over 30:
+  Most = 5-O
+  Least = twurk
+```{r}
+
+younger_20 <-
+  hiphop1 %>% 
+    filter (age < 20) %>%  
+    group_by(word) %>%
+    summarize(famil_word = mean(familiarity)) %>%
+    arrange(desc(famil_word))
+younger_20
+
+non_white_fem <-
+  hiphop1 %>% 
+    filter (ethnic_2 == "non-white", sex == "Female") %>%  
+    group_by(word) %>%
+    summarize(famil_word = mean(familiarity)) %>%
+    arrange(desc(famil_word))
+non_white_fem
+
+white_male_abv30 <-
+  hiphop1 %>% 
+    filter (ethnic_2 == "white", sex == "Male", age > 30) %>%  
+    group_by(word) %>%
+    summarize(famil_word = mean(familiarity)) %>%
+    arrange(desc(famil_word))
+white_male_abv30
+    
+```
+
+USE THE DATA
+
+1. 
+Words that Drake should utilize:
+  - "feel me"
+  - "hella"
+  - "off the hook"
+  - "boo"
+  - "what it do"
+Words that Drake should not utilize:
+  - "grip grain"
+  - "face gator"
+  - "rollie"
+  - "catch the vapors"
+  - "domino"
+```{r}
+hiphopfans <-
+  hiphop1 %>%
+  filter (hiphop >= 4) %>%
+  group_by (word) %>%
+  summarize (famil_hiphopfans = mean(familiarity)) %>%
+  arrange(desc(famil_hiphopfans))
+hiphopfans
+
+nonhiphopfans<-
+   hiphop1 %>%
+  filter (hiphop < 3) %>%
+  group_by (word) %>%
+  summarize (famil_nonhiphop = mean(familiarity)) %>%
+  arrange(desc(famil_nonhiphop))
+nonhiphopfans
+
+full_join(hiphopfans, nonhiphopfans)
+```
+
+2. I would advise Drake to use the album name "Hella Bling"
+```{r}
+summary (hiphop1$city)
+summary (hiphop1$county)
+
+hiphop2 <- hiphop1 %>% mutate(
+  population = case_when(
+  county < 99905 | city < 12807 ~ "small",
+  county > 959521  | city > 103486 ~ "large",
+  TRUE ~ "medium"
+  ),
+  population = factor(population, levels = c("small", "medium", "large")) 
+)
+
+album_name <- 
+  hiphop2 %>%
+  filter(population == "large") %>%
+  group_by(word) %>%
+  summarize (famil_album = mean (fam1)) %>%
+  arrange(desc(famil_album))
+album_name
+
+album_rows10 <- album_name[1:10,]
+
+album_rows10 %>%
+  ggplot(aes(x = word, y = famil_album)) +
+  geom_point()
+```
+
+3.
+Tracklist:
+1. "Boo you're off the hook"
+2. "You feel me?"
+3. "Why are you a player hater?"
+4. "I need straight cash"
+5. "Make it rain"
+6. "I'm finna crump"
+7. "Chedda equals dead presidents"
+8. "Hate 5-0"
+9. "A-town in my bones"
+10. "Ballin' hard"
+11. "Wile out"
+```{r}
+hiphop3 <- 
+  hiphop2 %>% mutate(
+  justin = case_when(
+  population == "small" | age <= 23 | ethnic == "white" | sex == "male" | bieber >= 4 ~ "yes",
+  TRUE ~ "no"
+  ),
+  justin = factor(justin, levels = c("yes", "no")) 
+)
+
+justin_songs <-
+  hiphop3 %>%
+  filter (justin == "yes") %>%
+  group_by (word) %>%
+  summarize (famil_justin = mean(familiarity)) %>%
+  arrange(desc(famil_justin))
+justin_songs
+```
+

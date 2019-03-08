@@ -1,0 +1,165 @@
+---
+title: "Lab 6 - Simulation"
+author: "Benjamin Fales"
+date: "February 26, 2019"
+output: html_document
+---
+
+# Normal Approximation to the Binomial
+
+### Question 1
+
+
+```{r Question 1, echo = TRUE, eval = TRUE}
+library(tidyverse)
+
+my_samples <- data.frame(
+  binom1 =rbinom(1000, size = 20, prob = 0.9
+))
+
+ggplot(my_samples, aes(x = binom1)) + 
+  geom_density()
+  
+```
+
+### Question 2
+
+```{r Question 2, echo = TRUE, eval = TRUE}
+prob = c(.9, .7, .5)
+
+my_samples2 <- map_dfc(prob, ~rbinom(1000, size = 20, prob = .x))
+
+names(my_samples2) <- prob
+
+my_samples2 <- my_samples2 %>%
+gather(key = "Probability", value = "Samples")
+
+ggplot(my_samples2, aes(x = Samples, fill = Probability)) +
+geom_density(alpha = 0.5)
+
+```
+
+### Question 3
+
+```{r Question 3, echo = TRUE, eval = TRUE}
+size = c(20, 50, 100)
+
+my_samples3 <- map_dfc(size, ~rbinom(1000, size = .x, prob = .9))
+
+names(my_samples3) <- size
+
+my_samples3 <- my_samples3 %>% 
+  gather(key = "Trials", value = "Samples") %>% 
+  mutate(
+    sample_prob = Samples / strtoi(Trials)
+  )
+
+ggplot(my_samples3, aes(x = sample_prob, fill = Trials)) + geom_density(alpha = 0.5)
+```
+
+### Question 4
+
+```{r Question 4, echo = TRUE, eval = TRUE}
+binom_function <- function(trials, prob_succ) {
+  
+  my_samples4 <- map_dfc(trials, ~rbinom(1000, size = .x, prob = prob_succ))
+  
+  names(my_samples4) <- trials
+  
+   my_samples4 <- my_samples4 %>% 
+  gather(key = "Trials", value = "Samples") %>% 
+  mutate(
+    sample_prob = Samples / strtoi(Trials)
+  )
+ 
+  ggplot(my_samples4, aes(x = sample_prob, fill = Trials)) + geom_density(alpha = 0.5) 
+}
+```
+
+### Question 5
+
+As the probability comes closer to 0.5, there is less of a need for a high trial size to output a normal distribution of successes. The farther that the probability is from 0.5 (lower or higher) the more trials needed to bring the plot closer to a normal distribution.
+```{r Question 5, echo = TRUE, eval = TRUE}
+binom_function(c(10, 40, 80, 200), .85)
+
+binom_function(c(10, 40, 80, 200), .5)
+
+binom_function(c(10, 40, 80, 200), .3)
+```
+
+# Central Limit Theorem
+
+### Question 1
+
+```{r Question 1 Normal, echo = TRUE, eval = FALSE}
+my_normal <- replicate(1000, rnorm(30, mean = 50, sd = 1), simplify = FALSE)
+
+my_stats <- data.frame(
+means = map_dbl(my_normal, mean),
+medians = map_dbl(my_normal, median),
+std_dev = map_dbl(my_normal, sd),
+ranges = map_dbl(my_normal, ~max(.x) - min(.x)),
+third_quantile = map_dbl(my_normal, ~quantile(.x, .75))
+)
+
+my_stats %>% 
+  gather(key = "Statistic", value = "Value") %>%
+  filter(Statistic == "means") %>% 
+  ggplot(aes(x = Value)) + geom_histogram()
+
+my_stats %>% 
+  gather(key = "Statistic", value = "Value") %>%
+  filter(Statistic != "means") %>% 
+  ggplot(aes(x = Value)) + geom_density() + facet_wrap(~Statistic, scales = "free")
+```
+
+### Question 2
+
+```{r Question 2 Uniform, echo = TRUE, eval = TRUE}
+my_unif <- replicate (1000, runif(30, min = 10, max = 90), simplify = FALSE)
+
+my_stats_unif <- data.frame(
+  means = map_dbl(my_unif, mean),
+  medians = map_dbl(my_unif, median),
+  std_dev = map_dbl(my_unif, sd),
+  ranges = map_dbl(my_unif, ~max(.x)- min(.x)),
+  third_quantile = map_dbl(my_unif, ~quantile(.x, .75))
+)
+
+my_stats_unif %>% 
+  gather(key = "Statistic", value = "Value") %>% 
+  filter(Statistic == "means") %>% 
+  ggplot(aes(x = Value)) + geom_histogram()
+
+my_stats_unif %>% 
+  gather(key = "Statistic", value = "Value") %>%
+  filter(Statistic != "means") %>% 
+  ggplot(aes(x = Value)) + geom_density() + facet_wrap(~Statistic, scales = "free")
+```
+
+### Question 3
+Based on the three distributions (Normal, Uniform, t) it seems as though the medians and the standard deviations roughly follow the central limit theorem. In the three distributions, the medians are centered around a value (50 in both the Normal and Uniform distributions, and 0 in the t distribution), and then follow a normal distribution. The standard deviations are also centered at a value and normally distributed, however the t- distribution is slightly skewed right.
+
+```{r Question 3 t distribution, echo = TRUE, eval = TRUE}
+my_t <- replicate (1000, rt(30, df = 29), simplify = FALSE)
+
+my_stats_t <- data.frame(
+  means = map_dbl(my_t, mean),
+  medians = map_dbl(my_t, median),
+  std_dev = map_dbl(my_t, sd),
+  ranges = map_dbl(my_t, ~max(.x)- min(.x)),
+  third_quantile = map_dbl(my_t, ~quantile(.x, .75))
+)
+
+my_stats_t %>% 
+  gather(key = "Statistic", value = "Value") %>% 
+  filter(Statistic == "means") %>% 
+  ggplot(aes(x = Value)) + geom_histogram()
+
+my_stats_t %>% 
+  gather(key = "Statistic", value = "Value") %>%
+  filter(Statistic != "means") %>% 
+  ggplot(aes(x = Value)) + geom_density() + facet_wrap(~Statistic, scales = "free")
+
+```
+

@@ -1,0 +1,84 @@
+---
+title: "In-Class Activity: Functional Programming"
+author: "Benjamin Fales"
+date: "February 5, 2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(tidyverse)
+```
+
+Copy your `sing_song` function (and any other functions it depends on) into the chunk below.  Change the part that says "my true love sent to me" to "my college gave to me".
+
+```{r}
+### Your functions here
+sing_song <- function(data){
+
+pluralize_gifts <- function(gifts, day){
+  skip <- str_detect(gifts, "oo|s$|y$") | day == 1
+  gifts <- gifts %>% 
+    str_replace_all(pattern = ("oo"), "ee") %>% 
+    str_replace_all(pattern = ("y$"), "ies") 
+  gifts[!skip] <-  paste0(gifts[!skip], "s")
+  return(gifts)
+} 
+
+data <- data %>% 
+  mutate(
+    Plural.Gifts = pluralize_gifts(Gift.Item, Day)
+  )
+
+make_phrase <- function(num, item, verb, adjective, location){
+  verb <- str_replace_na(verb, replacement = "")
+  adjective <- str_replace_na(adjective, replacement = "")
+  location <- str_replace_na(location, replacement = "")
+  phrase <- paste(num, adjective, item, verb, location, sep = " ")
+  return(phrase)
+}
+
+data <- data %>% 
+  mutate(
+    phrases = make_phrase(Day, Plural.Gifts, Verb, Adjective, Location)
+  )
+
+sing_line <- function(data, i){
+  for (i in 1:i){
+             
+    print(paste("On the",data$Day.in.Words[i],"day of Christmas, my college gave to me")) 
+    
+    if (i== 1) {
+      phrase <- paste("a", data$phrases[i])
+      phrase <- str_replace_all(phrase, "1", replacement = "")  
+      print(phrase)
+    }
+    for (j in i:1){
+      if(j == 1 & i != 1) {
+        phrase <- paste("and a", data$phrases[j])
+        phrase <- str_replace_all(phrase, "1", replacement = "")
+        print(phrase)
+    }
+    if (j != 1) {
+      print(data$phrases[j])
+      }  
+    }
+  }
+}
+data <- map(12, ~sing_line(data, .x))
+}
+```
+
+Then knit the file and turn it in to PolyLearn.
+
+```{r}
+### DO NOT CHANGE ANYTHING IN THIS CHUNK
+
+xmas2 <- read.csv("https://www.dropbox.com/s/ap2hqssese1ki4j/xmas_2.csv?dl=1")
+
+sing_song(xmas2)
+
+```
+
+
